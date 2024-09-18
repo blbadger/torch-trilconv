@@ -15,20 +15,20 @@ __global__ void trilconv_kernel(int numel, const float* input, const float* conv
   }
 }
 
-at::Tensor trilconv_kernel(const at::Tensor& a, const at::Tensor& b) {
-  TORCH_CHECK(a.sizes() == b.sizes());
-  TORCH_CHECK(a.dtype() == at::kFloat);
-  TORCH_CHECK(b.dtype() == at::kFloat);
-  TORCH_INTERNAL_ASSERT(a.device().type() == at::DeviceType::CUDA);
-  TORCH_INTERNAL_ASSERT(b.device().type() == at::DeviceType::CUDA);
-  at::Tensor a_contig = a.contiguous();
-  at::Tensor b_contig = b.contiguous();
-  at::Tensor result = torch::empty(a_contig.sizes(), a_contig.options());
-  const float* a_ptr = a_contig.data_ptr<float>();
-  const float* b_ptr = b_contig.data_ptr<float>();
+at::Tensor trilconv_kernel(const at::Tensor& input, const at::Tensor& weight) {
+  TORCH_CHECK(input.sizes() == b.sizes());
+  TORCH_CHECK(input.dtype() == at::kFloat);
+  TORCH_CHECK(weight.dtype() == at::kFloat);
+  TORCH_INTERNAL_ASSERT(input.device().type() == at::DeviceType::CUDA);
+  TORCH_INTERNAL_ASSERT(weight.device().type() == at::DeviceType::CUDA);
+  at::Tensor input_contig = input.contiguous();
+  at::Tensor weight_contig = weight.contiguous();
+  at::Tensor result = torch::empty(input_contig.sizes(), input_contig.options());
+  const float* input_ptr = input_contig.data_ptr<float>();
+  const float* weight_ptr = weight_contig.data_ptr<float>();
   float* result_ptr = result.data_ptr<float>();
-  int numel = a_contig.numel();
-  mul_kernel<<<(numel+255)/256, 256>>>(numel, a_ptr, b_ptr, result_ptr);
+  int numel = input_contig.numel();
+  trilconv_kernel<<<(numel+255)/256, 256>>>(numel, input_ptr, weight_ptr, result_ptr);
   return result;
 }
 
