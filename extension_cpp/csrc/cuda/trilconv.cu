@@ -16,9 +16,9 @@ __global__ void trilconv_kernel(int numel, const float* input, const float* conv
 }
 
 at::Tensor trilconv_kernel(const at::Tensor& input, const at::Tensor& weight) {
-  TORCH_CHECK(input.sizes() == b.sizes());
+  TORCH_CHECK(input.sizes() == weight.sizes());
   TORCH_CHECK(input.dtype() == at::kFloat);
-  TORCH_CHECK(weight.dtype() == at::kFloat);
+  TORCH_CHECK(weight.dtype() == at::kFloat);  
   TORCH_INTERNAL_ASSERT(input.device().type() == at::DeviceType::CUDA);
   TORCH_INTERNAL_ASSERT(weight.device().type() == at::DeviceType::CUDA);
   at::Tensor input_contig = input.contiguous();
@@ -32,7 +32,7 @@ at::Tensor trilconv_kernel(const at::Tensor& input, const at::Tensor& weight) {
   return result;
 }
 
-// Registers CUDA implementations for mymuladd, mymul, myadd_out
+// Registers CUDA implementations for trilconv
 TORCH_LIBRARY_IMPL(extension_cpp, CUDA, m) {
   m.impl("trilconv", &trilconv_kernel);
 }
