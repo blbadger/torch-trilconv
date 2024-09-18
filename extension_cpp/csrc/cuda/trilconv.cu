@@ -15,7 +15,7 @@ __global__ void trilconv_kernel(int numel, const float* input, const float* conv
   }
 }
 
-at::Tensor trilconv_kernel(const at::Tensor& input, const at::Tensor& weight) {
+at::Tensor trilconv_cuda(const at::Tensor& input, const at::Tensor& weight) {
   TORCH_CHECK(input.sizes() == weight.sizes());
   TORCH_CHECK(input.dtype() == at::kFloat);
   TORCH_CHECK(weight.dtype() == at::kFloat);  
@@ -34,6 +34,6 @@ at::Tensor trilconv_kernel(const at::Tensor& input, const at::Tensor& weight) {
 
 // Registers CUDA implementations for trilconv
 TORCH_LIBRARY_IMPL(extension_cpp, CUDA, m) {
-  m.impl("trilconv", &trilconv_kernel);
+  m.impl("trilconv", &trilconv_cuda);
 }
 }
