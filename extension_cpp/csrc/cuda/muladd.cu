@@ -36,7 +36,7 @@ __global__ void mul_kernel(int numel, const float* a, const float* b, float* res
 __global__ void trilconv_kernel(int numel, const float* input, const float* conv_weights, float* result){
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx < numel) {
-    for (int i=0; i<position; i++){
+    for (int i=0; i<idx; i++){
       result[idx] += input[i] * conv_weights[i];
     }
   }
