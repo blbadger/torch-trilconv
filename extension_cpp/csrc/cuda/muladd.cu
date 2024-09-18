@@ -33,16 +33,7 @@ __global__ void mul_kernel(int numel, const float* a, const float* b, float* res
   if (idx < numel) result[idx] = a[idx] * b[idx];
 }
 
-__global__ void trilconv_kernel(int numel, const float* input, const float* conv_weights, float* result){
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (idx < numel) {
-    for (int i=0; i<idx; i++){
-      result[idx] += input[i] * conv_weights[i];
-    }
-  }
-}
-
-at::Tensor trilconv_kernel(const at::Tensor& a, const at::Tensor& b) {
+at::Tensor mymul_cuda(const at::Tensor& a, const at::Tensor& b) {
   TORCH_CHECK(a.sizes() == b.sizes());
   TORCH_CHECK(a.dtype() == at::kFloat);
   TORCH_CHECK(b.dtype() == at::kFloat);
@@ -83,10 +74,11 @@ void myadd_out_cuda(const at::Tensor& a, const at::Tensor& b, at::Tensor& out) {
   add_kernel<<<(numel+255)/256, 256>>>(numel, a_ptr, b_ptr, result_ptr);
 }
 
+
 // Registers CUDA implementations for mymuladd, mymul, myadd_out
 TORCH_LIBRARY_IMPL(extension_cpp, CUDA, m) {
-  m.impl("trilconv", &trilconv_kernel);
   m.impl("mymuladd", &mymuladd_cuda);
+  m.impl("mymul", &mymul_cuda);
   m.impl("myadd_out", &myadd_out_cuda);
 }
 
