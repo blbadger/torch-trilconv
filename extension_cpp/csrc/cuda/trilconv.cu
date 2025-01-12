@@ -1,5 +1,4 @@
 #include <torch/extension.h>
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 
@@ -7,12 +6,20 @@ namespace extension_cpp {
 
 
 __global__ void trilconv_kernel(int numel, const float* input, const float* conv_weights, float* result){
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (idx < numel) {
-    for (int i=0; i<idx; i++){
-      result[idx] += input[i] * conv_weights[i];
-    }
+  int m = blockIdx.x;
+  int h = (blockIdx.y / W_grid)*TILE_WIDTH + threadIdx.y;
+  int w = (blockIdx.y % W_grid)*TILE_WIDTH + threadIdx.x;
+  int n = blockIdx.z;
+
+  float acc = 0.;
+  for (int c = 0; c < C; c++) {
+  	for (int p = 0; p < K; p++){
+      for (int q = 0; q < K; q++){
+      	acc += X[n, c, h+p, w+q] * W[m, c, p, q]
+      }
+  	}
   }
+  Y[n, m, h, w] = acc;
 }
 
 at::Tensor trilconv_cuda(const at::Tensor& input, const at::Tensor& weight) {
